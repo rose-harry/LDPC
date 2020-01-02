@@ -152,8 +152,29 @@ class LDPC:
         else:
             print("Failed to converged in %d runs" %self.runs)
 
+def displayOriginalMessage( decoded_signal ):
+    '''
+    The original message is located in the first 252 bits of the decoded signal
+    we can find the original English message in the first 248 bits of the 252-bit message
+    treating them as a sequence of 31 ASCII symbols
+    '''
+    # Trim signal to first 248 bits and reshape into 31 8bit vectors
+    msg = decoded_signal[:248].reshape((31,8))
+    # Convert floating 1. and 0. 's to integer 1 and 0 's
+    msg = msg.astype(int)
+    # Join all elements in each vector into a str
+    msg = np.array([''.join(item.astype(str)) for item in msg])
+    # Convert each integer string into ASCII character
+    msg = np.array([chr(int(string,2)) for string in msg])
+    # Join all ASCII chars to reveal message
+    return ''.join(msg)
+
 if __name__ == '__main__':
     H1 = np.loadtxt("H1.txt")
     y1 = np.loadtxt("y1.txt")
     eps = 0.1
+    
     decoder = LDPC(H1,y1,eps)
+    decoder.message_passing()
+    msg = displayOriginalMessage(decoder.xpred)
+    print(msg)
